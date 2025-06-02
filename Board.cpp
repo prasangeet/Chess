@@ -1,5 +1,6 @@
 #include "Board.h"
 #include "Pawn.h"
+#include "Bishop.h"
 #include <QGraphicsRectItem>
 #include <QGraphicsPixmapItem>
 #include <QBrush>
@@ -36,6 +37,11 @@ void Board::setupInitialPosition() {
         addPiece(new Pawn(ChessPiece::White, 6, col));
         addPiece(new Pawn(ChessPiece::Black, 1, col));
     }
+
+    addPiece(new Bishop(ChessPiece::White, 7, 2));
+    addPiece(new Bishop(ChessPiece::Black, 0, 2));
+    addPiece(new Bishop(ChessPiece::White, 7, 5));
+    addPiece(new Bishop(ChessPiece::Black, 0, 5));
 }
 
 void Board::addPiece(ChessPiece* piece) {
