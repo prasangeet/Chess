@@ -14,9 +14,19 @@ public:
     Board(int border, int squareSize);
     ~Board();
 
+    // Use ChessPiece::PieceColor instead of Player
+    ChessPiece::PieceColor currentPlayer;
+
+    void switchTurn();
+    void clear();
+    ChessPiece::PieceColor getCurrentPlayer() const;
+
     void setupInitialPosition();
     void addPiece(ChessPiece* piece);
     ChessPiece* getPiece(int row, int col) const;
+
+signals:
+    void turnChanged(ChessPiece::PieceColor current);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

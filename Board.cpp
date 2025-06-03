@@ -19,8 +19,9 @@
 Board::Board(int border, int squareSize)
     : border(border), squareSize(squareSize) {
 
+    currentPlayer = ChessPiece::White;
+
     board.resize(8, QVector<ChessPiece*>(8, nullptr));
-    setSceneRect(0, 0, 8 * squareSize + 2 * border, 8 * squareSize + 2 * border);
 
     QPixmap boardPixmap(":/images/board.png");
     if (!boardPixmap.isNull()) {
@@ -114,6 +115,14 @@ void Board::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 
     QGraphicsItem* item = itemAt(pos, QTransform());
     auto* piece = dynamic_cast<ChessPiece*>(item);
+
+    if (piece && piece->getColor() != currentPlayer) {
+        // Clear selection & highlights if clicking opponent piece
+        clearHighlights();
+        validMoves.clear();
+        selectedPiece = nullptr;
+        return;
+    }
 
     // If we have a selected piece and the click is on a valid move square, move the piece
     if (selectedPiece) {
@@ -217,6 +226,8 @@ void Board::movePiece(ChessPiece* piece, int newRow, int newCol) {
 
     piece->setBoardPosition(newRow, newCol);
     piece->updateGraphicsPosition(border, squareSize);
+
+    switchTurn();
 }
 
 void Board::highlightMoves(const QVector<QPair<int, int>>& moves) {
@@ -246,3 +257,32 @@ void Board::clearHighlights() {
         }
     }
 }
+
+ChessPiece::PieceColor Board::getCurrentPlayer() const {
+    return currentPlayer;
+}
+
+void Board::switchTurn() {
+    currentPlayer = (currentPlayer == ChessPiece::White) ? ChessPiece::Black : ChessPiece::White;
+    emit turnChanged(currentPlayer);
+}
+
+void Board::clear() {
+    // Remove all pieces and clear the board array
+    for (int r = 0; r < 8; ++r) {
+        for (int c = 0; c < 8; ++c) {
+            if (board[r][c]) {
+                removeItem(board[r][c]);
+                delete board[r][c];
+                board[r][c] = nullptr;
+            }
+        }
+    }
+
+    clearHighlights();
+    selectedPiece = nullptr;
+    validMoves.clear();
+    currentPlayer = ChessPiece::White;
+    emit turnChanged(currentPlayer);
+}
+
