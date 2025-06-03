@@ -1,11 +1,20 @@
+// Custom game logic
 #include "Board.h"
 #include "Pawn.h"
 #include "Bishop.h"
+#include "Knight.h"
+#include "Rook.h"
+#include "Queen.h"
+#include "King.h"
+// Qt graphics and utilities
 #include <QGraphicsRectItem>
 #include <QGraphicsPixmapItem>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QApplication>
 #include <QBrush>
-#include <QDebug>
 #include <QPixmap>
+#include <QDebug>
 
 Board::Board(int border, int squareSize)
     : border(border), squareSize(squareSize) {
@@ -33,16 +42,39 @@ Board::~Board() {
 }
 
 void Board::setupInitialPosition() {
+    // --- White pieces (bottom side) ---
+    // Row 7: Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook
+    addPiece(new Rook(ChessPiece::White, 7, 0));
+    addPiece(new Knight(ChessPiece::White, 7, 1));
+    addPiece(new Bishop(ChessPiece::White, 7, 2));
+    addPiece(new Queen(ChessPiece::White, 7, 3));
+    addPiece(new King(ChessPiece::White, 7, 4));
+    addPiece(new Bishop(ChessPiece::White, 7, 5));
+    addPiece(new Knight(ChessPiece::White, 7, 6));
+    addPiece(new Rook(ChessPiece::White, 7, 7));
+
+    // Row 6: White pawns
     for (int col = 0; col < 8; ++col) {
         addPiece(new Pawn(ChessPiece::White, 6, col));
-        addPiece(new Pawn(ChessPiece::Black, 1, col));
     }
 
-    addPiece(new Bishop(ChessPiece::White, 7, 2));
+    // --- Black pieces (top side) ---
+    // Row 0: Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook
+    addPiece(new Rook(ChessPiece::Black, 0, 0));
+    addPiece(new Knight(ChessPiece::Black, 0, 1));
     addPiece(new Bishop(ChessPiece::Black, 0, 2));
-    addPiece(new Bishop(ChessPiece::White, 7, 5));
+    addPiece(new Queen(ChessPiece::Black, 0, 3));
+    addPiece(new King(ChessPiece::Black, 0, 4));
     addPiece(new Bishop(ChessPiece::Black, 0, 5));
+    addPiece(new Knight(ChessPiece::Black, 0, 6));
+    addPiece(new Rook(ChessPiece::Black, 0, 7));
+
+    // Row 1: Black pawns
+    for (int col = 0; col < 8; ++col) {
+        addPiece(new Pawn(ChessPiece::Black, 1, col));
+    }
 }
+
 
 void Board::addPiece(ChessPiece* piece) {
     int row = piece->getRow();
