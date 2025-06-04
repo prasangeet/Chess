@@ -27,6 +27,7 @@ public:
 
 signals:
     void turnChanged(ChessPiece::PieceColor current);
+    void checkmate(ChessPiece::PieceColor loser);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -37,15 +38,26 @@ private:
     QVector<QVector<ChessPiece*>> board;
     int border;
     int squareSize;
+    QGraphicsRectItem* checkHighlight = nullptr;
 
     ChessPiece* selectedPiece = nullptr;
     QVector<QPair<int, int>> validMoves;
     QPointF originalPos;
     bool isDragging = false;
 
+    bool isLegalMove(ChessPiece* piece, int toRow, int toCol);
+    QVector<QPair<int, int>> getLegalMoves(ChessPiece* piece);
+
+
     void movePiece(ChessPiece* piece, int newRow, int newCol);
     void highlightMoves(const QVector<QPair<int, int>> &moves);
     void clearHighlights();
+
+    void highlightCheck(int row, int col);
+    void clearCheckHighlight();
+
+    bool isInCheck(ChessPiece::PieceColor color) const;
+    bool isCheckmate(ChessPiece::PieceColor color);
 };
 
 #endif // BOARD_H

@@ -22,6 +22,7 @@ Board::Board(int border, int squareSize)
     currentPlayer = ChessPiece::White;
 
     board.resize(8, QVector<ChessPiece*>(8, nullptr));
+    clearCheckHighlight();
 
     QPixmap boardPixmap(":/images/board.png");
     if (!boardPixmap.isNull()) {
@@ -109,7 +110,6 @@ void Board::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     int clickedRow = (pos.y() - border) / squareSize;
     int clickedCol = (pos.x() - border) / squareSize;
 
-    // Clamp indices within board
     clickedRow = qBound(0, clickedRow, 7);
     clickedCol = qBound(0, clickedCol, 7);
 
@@ -117,14 +117,12 @@ void Board::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     auto* piece = dynamic_cast<ChessPiece*>(item);
 
     if (piece && piece->getColor() != currentPlayer) {
-        // Clear selection & highlights if clicking opponent piece
         clearHighlights();
         validMoves.clear();
         selectedPiece = nullptr;
         return;
     }
 
-    // If we have a selected piece and the click is on a valid move square, move the piece
     if (selectedPiece) {
         bool clickedValidMove = std::any_of(validMoves.begin(), validMoves.end(),
                                             [&](const QPair<int, int>& mv) {
@@ -133,33 +131,55 @@ void Board::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 
         if (clickedValidMove) {
             movePiece(selectedPiece, clickedRow, clickedCol);
+
+            // Highlight check if opponent is now in check
+            ChessPiece::PieceColor nextPlayer = currentPlayer;
+            if (isInCheck(nextPlayer)) {
+                qDebug() << "Player" << (nextPlayer == ChessPiece::White ? "White" : "Black") << "is in check!";
+                for (int row = 0; row < 8; ++row) {
+                    for (int col = 0; col < 8; ++col) {
+                        ChessPiece* king = board[row][col];
+                        if (king && king->getType() == ChessPiece::King && king->getColor() == nextPlayer) {
+                            highlightCheck(row, col);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                clearCheckHighlight();
+            }
+
             clearHighlights();
             validMoves.clear();
             selectedPiece = nullptr;
-            return;  // move done, no further processing needed
+            return;
         }
     }
 
-    // Otherwise, clicking on a piece selects it and highlights moves
     if (piece) {
         selectedPiece = piece;
         originalPos = piece->pos();
-        validMoves = piece->getValidMoves(board);
+
+        // ✅ Use filtered legal moves instead of all valid moves
+        validMoves = getLegalMoves(piece);
+
         clearHighlights();
         highlightMoves(validMoves);
-
         selectedPiece->setZValue(100);
     } else {
-        // Clicked empty square or outside pieces — clear selection
         clearHighlights();
         validMoves.clear();
         selectedPiece = nullptr;
+
+        // If no one is in check, clear red highlight
+        if (!isInCheck(currentPlayer) && !isInCheck(currentPlayer == ChessPiece::White ? ChessPiece::Black : ChessPiece::White)) {
+            clearCheckHighlight();
+        }
     }
 
     isDragging = false;
-
-    // Don't call base class to prevent default behavior interfering
 }
+
 
 
 void Board::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
@@ -176,19 +196,13 @@ void Board::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 void Board::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     if (!selectedPiece) return;
 
-    if (selectedPiece) {
-        // Reset Z value regardless of move success or revert
-        selectedPiece->setZValue(0);
-    }
-
+    selectedPiece->setZValue(0);
 
     if (!isDragging) {
-        // On click without drag, do nothing here (movement is handled in mousePressEvent)
         selectedPiece->setPos(originalPos);
         return;
     }
 
-    // Drag & drop release (keep your existing code)
     int newRow = (event->scenePos().y() - border) / squareSize;
     int newCol = (event->scenePos().x() - border) / squareSize;
 
@@ -201,6 +215,27 @@ void Board::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
 
     if (isValid) {
         movePiece(selectedPiece, newRow, newCol);
+
+        if (isInCheck(currentPlayer)) {
+            qDebug() << "Player" << (currentPlayer == ChessPiece::White ? "White" : "Black") << "is in check!";
+        }
+
+        ChessPiece::PieceColor nextPlayer = currentPlayer;
+        if (isInCheck(nextPlayer)) {
+            qDebug() << "Player" << (nextPlayer == ChessPiece::White ? "White" : "Black") << "is in check!";
+
+            for (int row = 0; row < 8; ++row) {
+                for (int col = 0; col < 8; ++col) {
+                    ChessPiece* piece = board[row][col];
+                    if (piece && piece->getType() == ChessPiece::King && piece->getColor() == nextPlayer) {
+                        highlightCheck(row, col);
+                        break;
+                    }
+                }
+            }
+        } else {
+            clearCheckHighlight();
+        }
     } else {
         selectedPiece->setPos(originalPos);
     }
@@ -228,6 +263,9 @@ void Board::movePiece(ChessPiece* piece, int newRow, int newCol) {
     piece->updateGraphicsPosition(border, squareSize);
 
     switchTurn();
+    if (isCheckmate(currentPlayer)) {
+        emit checkmate(currentPlayer);
+    }
 }
 
 void Board::highlightMoves(const QVector<QPair<int, int>>& moves) {
@@ -285,4 +323,111 @@ void Board::clear() {
     currentPlayer = ChessPiece::White;
     emit turnChanged(currentPlayer);
 }
+
+bool Board::isInCheck(ChessPiece::PieceColor color) const{
+    int kingRow = -1, kingCol = -1;
+    for(int row = 0; row < 8; ++row){
+        for(int col = 0; col < 8; ++col){
+            ChessPiece* piece = board[row][col];
+            if(piece && piece->getType() == ChessPiece::King && piece->getColor() == color){
+                kingRow = row;
+                kingCol = col;
+                break;
+            }
+        }
+    }
+
+    if (kingRow == -1 || kingCol == -1) {
+        qWarning() << "King not found!";
+        return false;  // Should never happen unless king is missing
+    }
+
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            ChessPiece* piece = board[row][col];
+            if (piece && piece->getColor() != color) {
+                QVector<QPair<int, int>> moves = piece->getValidMoves(board);
+                for (const auto& move : moves) {
+                    if (move.first == kingRow && move.second == kingCol) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+void Board::highlightCheck(int row, int col){
+    clearCheckHighlight();
+
+    checkHighlight = new QGraphicsRectItem(
+        border + col*squareSize,
+        border + row * squareSize,
+        squareSize,
+        squareSize
+        );
+    checkHighlight->setBrush(QColor(255, 0, 0, 100)); // red overlay
+    checkHighlight->setZValue(-0.5);
+    addItem(checkHighlight);
+}
+
+void Board::clearCheckHighlight() {
+    if (checkHighlight) {
+        removeItem(checkHighlight);
+        delete checkHighlight;
+        checkHighlight = nullptr;
+    }
+}
+
+bool Board::isLegalMove(ChessPiece* piece, int toRow, int toCol) {
+    int fromRow = piece->getRow();
+    int fromCol = piece->getCol();
+
+    ChessPiece* captured = board[toRow][toCol];
+    board[toRow][toCol] = piece;
+    board[fromRow][fromCol] = nullptr;
+    piece->setBoardPosition(toRow, toCol);
+
+    bool safe = !isInCheck(piece->getColor());
+
+    // Undo the move
+    board[fromRow][fromCol] = piece;
+    board[toRow][toCol] = captured;
+    piece->setBoardPosition(fromRow, fromCol);
+
+    return safe;
+}
+
+QVector<QPair<int, int>> Board::getLegalMoves(ChessPiece* piece) {
+    QVector<QPair<int, int>> result;
+    QVector<QPair<int, int>> moves = piece->getValidMoves(board);
+
+    for (const auto& mv : moves) {
+        if (isLegalMove(piece, mv.first, mv.second)) {
+            result.append(mv);
+        }
+    }
+    return result;
+}
+
+bool Board::isCheckmate(ChessPiece::PieceColor color) {
+    if (!isInCheck(color)) return false;
+
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            ChessPiece* piece = board[row][col];
+            if (piece && piece->getColor() == color) {
+                QVector<QPair<int, int>> legal = getLegalMoves(piece);
+                if (!legal.isEmpty()) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 

@@ -20,6 +20,7 @@ private slots:
     void onStartGame();
     void onAbandonGame();
     void onTurnChanged(ChessPiece::PieceColor player);
+    void onCheckmate(ChessPiece::PieceColor loser);
 
 private:
     Ui::MainWindow *ui;

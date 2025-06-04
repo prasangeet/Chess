@@ -34,11 +34,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::onStartGame);
     connect(ui->abandonButton, &QPushButton::clicked, this, &MainWindow::onAbandonGame);
     connect(chessBoard, &Board::turnChanged, this, &MainWindow::onTurnChanged);
+    connect(chessBoard, &Board::checkmate, this, &MainWindow::onCheckmate);
 
     onTurnChanged(chessBoard->getCurrentPlayer());
 }
 
 void MainWindow::onStartGame() {
+    ui->graphicsView->setEnabled(true);
     chessBoard->clear();
     chessBoard->setupInitialPosition();
     onTurnChanged(chessBoard->getCurrentPlayer());
@@ -53,6 +55,18 @@ void MainWindow::onAbandonGame() {
 void MainWindow::onTurnChanged(ChessPiece::PieceColor player) {
     QString playerText = (player == ChessPiece::PieceColor::White) ? "White" : "Black";
     ui->turnLabel->setText("Current Turn: " + playerText);
+}
+
+void MainWindow::onCheckmate(ChessPiece::PieceColor loser){
+    QString loserText = (loser == ChessPiece::PieceColor::White) ? "White" : "Black";
+    QString winnerText = (loser == ChessPiece::PieceColor::White) ? "Black" : "White";
+
+    ui->turnLabel->setText("Checkmate! " + winnerText + " wins.");
+    QMessageBox::information(this, "Checkmate", "Checkmate! " + winnerText + " wins.");
+
+    // Optionally disable further interaction
+    ui->graphicsView->setEnabled(false);
+
 }
 
 MainWindow::~MainWindow()
