@@ -1,3 +1,5 @@
+//represent a single chess piece on a graphics-based chessboard
+
 #include "ChessPiece.h"
 
 ChessPiece::ChessPiece(PieceType type, PieceColor color, int row, int col, QGraphicsItem* parent)
@@ -15,7 +17,6 @@ void ChessPiece::setBoardPosition(int row, int col){
     m_row = row;
     m_col = col;
 }
-
 void ChessPiece::updateGraphicsPosition(int border, int squareSize){
     setPos(border + m_col * squareSize, border + m_row * squareSize);
 }

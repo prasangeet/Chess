@@ -13,5 +13,7 @@
         <file>wq.png</file>
         <file>wr.png</file>
         <file>board.png</file>
+        <file>trophy.png</file>
+        <file>chesscom_logo.png</file>
     </qresource>
 </RCC>
