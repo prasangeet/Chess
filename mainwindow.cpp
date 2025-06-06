@@ -13,8 +13,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    const int border = 8;
-    const int squareSize = 96;
+    const int border = 0;
+    const int squareSize = 98;
 
     // 🔹 Setup Chess Board
     chessBoard = new Board(border, squareSize);
