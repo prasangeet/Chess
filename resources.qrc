@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/images">
-        <file>board.png</file>
         <file>bb.png</file>
         <file>bk.png</file>
         <file>bn.png</file>
@@ -13,5 +12,6 @@
         <file>wp.png</file>
         <file>wq.png</file>
         <file>wr.png</file>
+        <file>board.png</file>
     </qresource>
 </RCC>
