@@ -3,7 +3,7 @@
 #include "ChessPiece.h"
 
 ChessPiece::ChessPiece(PieceType type, PieceColor color, int row, int col, QGraphicsItem* parent)
-    : QGraphicsPixmapItem(parent), m_type(type), m_color(color), m_row(row), m_col(col)
+    : QGraphicsPixmapItem(parent), m_type(type), m_color(color), m_row(row), m_col(col), m_hasMoved(false)
 {
     // You can load pixmaps here based on type/color or do that in MainWindow
 }
@@ -19,4 +19,12 @@ void ChessPiece::setBoardPosition(int row, int col){
 }
 void ChessPiece::updateGraphicsPosition(int border, int squareSize){
     setPos(border + m_col * squareSize, border + m_row * squareSize);
+}
+
+bool ChessPiece::hasMoved() const{
+    return m_hasMoved;
+}
+
+void ChessPiece::markMoved() {
+    m_hasMoved = true;
 }

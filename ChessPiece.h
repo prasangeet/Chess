@@ -23,11 +23,17 @@ public:
 
     virtual QVector<QPair<int, int>> getValidMoves(const QVector<QVector<ChessPiece*>> &board) = 0;
 
+    bool hasMoved() const;
+    void markMoved();
+
 private:
     PieceType m_type;
     PieceColor m_color;
     int m_row;
     int m_col;
+
+    // track if the piece has moved
+    bool m_hasMoved = false;
 };
 
 #endif // CHESSPIECE_H

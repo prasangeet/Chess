@@ -125,6 +125,9 @@ void Board::resetSelection() {
 
 
 void Board::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+    if (event->button() != Qt::LeftButton)
+        return;  // Only respond to left click
+
     QPointF pos = event->scenePos();
     int clickedRow = qBound(0, static_cast<int>((pos.y() - border) / squareSize), 7);
     int clickedCol = qBound(0, static_cast<int>((pos.x() - border) / squareSize), 7);
@@ -163,60 +166,74 @@ void Board::mousePressEvent(QGraphicsSceneMouseEvent* event) {
 
     isDragging = false;
 }
-void Board::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-    if (!selectedPiece) return;
 
-    QPointF delta = event->scenePos() - originalPos;
-    if (!isDragging && delta.manhattanLength() > 5)
+void Board::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+    if (!selectedPiece || !(event->buttons() & Qt::LeftButton))
+        return;
+
+    QPointF delta = event->scenePos() - selectedPiece->pos();
+
+    if (!isDragging && delta.manhattanLength() > squareSize / 2) {
         isDragging = true;
+    }
 
-    if (isDragging)
+    if (isDragging) {
         selectedPiece->setPos(event->scenePos() - QPointF(squareSize / 2, squareSize / 2));
+    }
 }
 
-
-//Handle Dragging a piece
 void Board::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
-    if (!selectedPiece)
+    if (!selectedPiece || event->button() != Qt::LeftButton)
         return;
 
     selectedPiece->setZValue(0);
 
-    if (!isDragging) {
-        selectedPiece->setPos(originalPos);
-        return;
-    }
-
     int newRow = qBound(0, static_cast<int>((event->scenePos().y() - border) / squareSize), 7);
     int newCol = qBound(0, static_cast<int>((event->scenePos().x() - border) / squareSize), 7);
 
-    for (const auto& mv : validMoves) {
-        if (mv.first == newRow && mv.second == newCol) {
-            movePiece(selectedPiece, newRow, newCol);
-            resetSelection();
-            return;
+    if (isDragging) {
+        for (const auto& mv : validMoves) {
+            if (mv.first == newRow && mv.second == newCol) {
+                movePiece(selectedPiece, newRow, newCol);
+                resetSelection();
+                return;
+            }
         }
+        selectedPiece->setPos(originalPos);
+    } else {
+        selectedPiece->setPos(originalPos);
     }
-
-    selectedPiece->setPos(originalPos);
-    resetSelection();
 }
-
 
 void Board::movePiece(ChessPiece* piece, int newRow, int newCol) {
     int oldRow = piece->getRow();
     int oldCol = piece->getCol();
 
+    if (abs(newCol - oldCol) == 2) {
+        if (tryCastling(piece, newRow, newCol)) {
+            switchTurn();
+            updateCheckHighlight();
+            if (isCheckmate(currentPlayer)) {
+                emit checkmate(currentPlayer);
+            }
+            return; // castling move done, no further move needed
+        }
+    }
+
+    // Capture if needed
     if (board[newRow][newCol]) {
         removeItem(board[newRow][newCol]);
         delete board[newRow][newCol];
     }
 
+    // Standard piece move
     board[oldRow][oldCol] = nullptr;
     board[newRow][newCol] = piece;
-
     piece->setBoardPosition(newRow, newCol);
     piece->updateGraphicsPosition(border, squareSize);
+
+    if (!piece->hasMoved())
+        piece->markMoved();  // ✅ important: mark the king (or any piece) as moved
 
     switchTurn();
     updateCheckHighlight();
@@ -225,6 +242,7 @@ void Board::movePiece(ChessPiece* piece, int newRow, int newCol) {
         emit checkmate(currentPlayer);
     }
 }
+
 
 void Board::highlightMoves(const QVector<QPair<int, int>>& moves) {
     clearHighlights();  // Clear previous highlights
@@ -273,6 +291,7 @@ QGraphicsItem* Board::pieceAt(int row, int col) {
     return nullptr;
 }
 void Board::clearHighlights() {
+
     QList<QGraphicsItem*> toRemove;
 
     for (QGraphicsItem* item : items()) {
@@ -289,6 +308,8 @@ void Board::clearHighlights() {
         delete item;
     }
 }
+
+
 ChessPiece::PieceColor Board::getCurrentPlayer() const {
     return currentPlayer;
 }
@@ -409,6 +430,28 @@ void Board::clearCheckHighlight() {
     }
 }
 
+
+
+bool Board::isCheckmate(ChessPiece::PieceColor color) {
+    if (!isInCheck(color)) return false;
+
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            ChessPiece* piece = board[row][col];
+            if (piece && piece->getColor() == color) {
+                QVector<QPair<int, int>> legal = getLegalMoves(piece);
+                if (!legal.isEmpty()) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+
+
 bool Board::isLegalMove(ChessPiece* piece, int toRow, int toCol) {
     int fromRow = piece->getRow();
     int fromCol = piece->getCol();
@@ -432,6 +475,11 @@ QVector<QPair<int, int>> Board::getLegalMoves(ChessPiece* piece) {
     QVector<QPair<int, int>> result;
     QVector<QPair<int, int>> moves = piece->getValidMoves(board);
 
+    if (piece->getType() == ChessPiece::King) {
+        QVector<QPair<int,int>> castleMoves = getCastlingMoves(piece);
+        moves.append(castleMoves);
+    }
+
     for (const auto& mv : moves) {
         if (isLegalMove(piece, mv.first, mv.second)) {
             result.append(mv);
@@ -440,22 +488,132 @@ QVector<QPair<int, int>> Board::getLegalMoves(ChessPiece* piece) {
     return result;
 }
 
-bool Board::isCheckmate(ChessPiece::PieceColor color) {
-    if (!isInCheck(color)) return false;
+QVector<QPair<int, int>> Board::getCastlingMoves(ChessPiece* king){
+    QVector<QPair<int, int>> castlingMoves;
 
-    for (int row = 0; row < 8; ++row) {
-        for (int col = 0; col < 8; ++col) {
-            ChessPiece* piece = board[row][col];
-            if (piece && piece->getColor() == color) {
-                QVector<QPair<int, int>> legal = getLegalMoves(piece);
-                if (!legal.isEmpty()) {
-                    return false;
-                }
-            }
+    if(king->hasMoved() || isInCheck(king->getColor())){
+        return castlingMoves;
+    }
+
+    int row = king->getRow();
+    int col = king->getCol();
+
+    if (canCastle(king->getColor(), true)) {
+        // Assume rook is at (row, 7)
+        // Add move for king to move two squares right
+        castlingMoves.append(qMakePair(row, col + 2));
+    }
+
+    // Check queenside castling (left side)
+    if (canCastle(king->getColor(), false)) {
+        // Assume rook is at (row, 0)
+        // Add move for king to move two squares left
+        castlingMoves.append(qMakePair(row, col - 2));
+    }
+
+    return castlingMoves;
+}
+
+bool Board::canCastle(ChessPiece::PieceColor color, bool kingside){
+    int row = (color == ChessPiece::White)? 7 : 0;
+    int kingCol = 4;
+
+    int rookCol = (kingside)? 7 : 0;
+
+    ChessPiece* rook = board[row][rookCol];
+    ChessPiece* king = board[row][kingCol];
+
+    if(!king || !rook){
+        return false;
+    }
+
+    if (king->getColor() != color || rook->getColor() != color)
+        return false;
+
+    // Neither king nor rook must have moved
+    if (king->hasMoved() || rook->hasMoved())
+        return false;
+
+    int step = kingside? 1 : -1;
+    int start = kingCol + step;
+    int end = kingside? rookCol -1 : rookCol + 1;
+
+    for (int c = start; c != end + step; c += step) {
+        if (board[row][c] != nullptr) {
+            return false;  // something blocking the path
         }
+    }
+
+    if(isInCheck(color)){
+        return false;
+    }
+
+    for (int c = kingCol; c != kingCol + 2 * step + step; c += step) {
+        ChessPiece::PieceColor oppositeColor = (color == ChessPiece::White) ? ChessPiece::Black : ChessPiece::White;
+        if (isSquareAttacked(row, c, oppositeColor)) {
+            return false;
+        }
+        if (c == kingCol + 2 * step)
+            break;
     }
 
     return true;
 }
+
+bool Board::isSquareAttacked(int row, int col, ChessPiece::PieceColor byColor) const {
+    for (int r = 0; r < 8; ++r) {
+        for (int c = 0; c < 8; ++c) {
+            ChessPiece* attacker = board[r][c];
+            if (!attacker || attacker->getColor() != byColor)
+                continue;
+
+            QVector<QPair<int, int>> pseudoMoves = attacker->getValidMoves(board);
+
+            for (const auto& move : pseudoMoves) {
+                if (move.first == row && move.second == col) {
+                    return true;  // square is attacked
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool Board::tryCastling(ChessPiece* king, int newRow, int newCol) {
+    if (king->getType() != ChessPiece::King)
+        return false;
+
+    int oldCol = king->getCol();
+    int row = king->getRow();
+
+    bool kingside = newCol > oldCol;
+
+    int rookCol = kingside ? 7 : 0;
+    int newRookCol = kingside ? newCol - 1 : newCol + 1;
+
+    ChessPiece* rook = board[row][rookCol];
+
+    if (!rook)
+        return false;
+
+    // Move the king
+    board[row][oldCol] = nullptr;
+    board[row][newCol] = king;
+    king->setBoardPosition(row, newCol);
+    king->updateGraphicsPosition(border, squareSize);
+    king->markMoved();
+
+    // Move the rook
+    board[row][rookCol] = nullptr;
+    board[row][newRookCol] = rook;
+    rook->setBoardPosition(row, newRookCol);
+    rook->updateGraphicsPosition(border, squareSize);
+    rook->markMoved();
+
+    return true;
+}
+
+
+
 
 

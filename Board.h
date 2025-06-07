@@ -67,6 +67,12 @@ private:
     void updateCheckHighlight();
     bool isInCheck(ChessPiece::PieceColor color) const;
     bool isCheckmate(ChessPiece::PieceColor color);
+
+    // Castling moves
+    QVector<QPair<int, int>> getCastlingMoves(ChessPiece* king);
+    bool canCastle(ChessPiece::PieceColor color, bool kingside);
+    bool isSquareAttacked(int row, int col, ChessPiece::PieceColor byColor) const;
+    bool tryCastling(ChessPiece* king, int newRow, int newCol);
 };
 
 #endif
