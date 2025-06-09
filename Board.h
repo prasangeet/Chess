@@ -43,6 +43,7 @@ private:
     QGraphicsRectItem* checkHighlight = nullptr;
     QGraphicsTextItem* checkLabel = nullptr;
 
+
     //Board Visualisation Parameters
     ChessPiece* selectedPiece = nullptr;
     QVector<QPair<int, int>> validMoves;
@@ -73,6 +74,10 @@ private:
     bool canCastle(ChessPiece::PieceColor color, bool kingside);
     bool isSquareAttacked(int row, int col, ChessPiece::PieceColor byColor) const;
     bool tryCastling(ChessPiece* king, int newRow, int newCol);
+
+    // Enpassant
+    QPair<int, int> enPassantTarget = QPair<int, int>(-1, -1);
+    std::optional<QPair<int, int>> getEnPassantMove(ChessPiece* piece);
 };
 
 #endif

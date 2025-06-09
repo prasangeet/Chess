@@ -220,6 +220,20 @@ void Board::movePiece(ChessPiece* piece, int newRow, int newCol) {
         }
     }
 
+    if (piece->getType() == ChessPiece::Pawn) {
+        if (QPair<int, int>(newRow, newCol) == enPassantTarget) {
+            // The pawn being captured is behind the en passant target square
+            int capturedPawnRow = oldRow;
+            int capturedPawnCol = newCol;
+
+            if (board[capturedPawnRow][capturedPawnCol]) {
+                removeItem(board[capturedPawnRow][capturedPawnCol]);
+                delete board[capturedPawnRow][capturedPawnCol];
+                board[capturedPawnRow][capturedPawnCol] = nullptr;
+            }
+        }
+    }
+
     // Capture if needed
     if (board[newRow][newCol]) {
         removeItem(board[newRow][newCol]);
@@ -234,6 +248,16 @@ void Board::movePiece(ChessPiece* piece, int newRow, int newCol) {
 
     if (!piece->hasMoved())
         piece->markMoved();  // ✅ important: mark the king (or any piece) as moved
+
+    if (piece->getType() == ChessPiece::Pawn && abs(newRow - oldRow) == 2) {
+        if (piece->getColor() == ChessPiece::White) {
+            enPassantTarget = QPair<int, int>(oldRow - 1, newCol);
+        } else { // Black
+            enPassantTarget = QPair<int, int>(oldRow + 1, newCol);
+        }
+    } else {
+        enPassantTarget = QPair<int, int>(-1, -1);  // Clear en passant
+    }
 
     switchTurn();
     updateCheckHighlight();
@@ -479,6 +503,12 @@ QVector<QPair<int, int>> Board::getLegalMoves(ChessPiece* piece) {
         QVector<QPair<int,int>> castleMoves = getCastlingMoves(piece);
         moves.append(castleMoves);
     }
+    if (piece->getType() == ChessPiece::Pawn) {
+        auto enPassant = getEnPassantMove(piece);
+        if (enPassant.has_value() && isLegalMove(piece, enPassant->first, enPassant->second)) {
+            moves.append(*enPassant);
+        }
+    }
 
     for (const auto& mv : moves) {
         if (isLegalMove(piece, mv.first, mv.second)) {
@@ -612,6 +642,29 @@ bool Board::tryCastling(ChessPiece* king, int newRow, int newCol) {
 
     return true;
 }
+
+
+std::optional<QPair<int, int>> Board::getEnPassantMove(ChessPiece* piece) {
+    if (!piece || piece->getType() != ChessPiece::Pawn)
+        return std::nullopt;
+
+    int row = piece->getRow();
+    int col = piece->getCol();
+    int dir = (piece->getColor() == ChessPiece::White) ? -1 : 1;
+
+    // Check left
+    if (col > 0 && enPassantTarget == QPair<int, int>(row + dir, col - 1)) {
+        return QPair<int, int>(row + dir, col - 1);
+    }
+
+    // Check right
+    if (col < 7 && enPassantTarget == QPair<int, int>(row + dir, col + 1)) {
+        return QPair<int, int>(row + dir, col + 1);
+    }
+
+    return std::nullopt;
+}
+
 
 
 
