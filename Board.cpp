@@ -666,6 +666,24 @@ std::optional<QPair<int, int>> Board::getEnPassantMove(ChessPiece* piece) {
 }
 
 
+bool Board::isStalemate(ChessPiece::PieceColor playerColor) {
+    QVector<ChessPiece*> pieces = getPieces(playerColor);
+
+    // 2. For each piece, check if it has any legal moves
+    for (ChessPiece* piece : pieces) {
+        QVector<QPair<int, int>> legalMoves = getLegalMoves(piece);
+        if (!legalMoves.isEmpty()) {
+            return false;
+        }
+    }
+
+    if (!isInCheck(playerColor)) {
+        return true;
+    }
+
+    return false;
+}
+
 
 
 
