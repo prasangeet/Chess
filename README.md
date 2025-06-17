@@ -113,7 +113,6 @@ cmake --build .
 ⏱️ Timer per player and move logs
 
 ---
-
-###🙌 Acknowledgements
+### 🙌 Acknowledgements
 Qt Community for GUI resources
 Icons sourced from [chess.com-like pieces with transparent background]
