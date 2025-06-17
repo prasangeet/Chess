@@ -36,28 +36,25 @@ A fully-featured chess game built using **C++** and the **Qt Framework**. This g
 ## 📁 Project Structure
 
 chess/
-├── src/
-│ ├── main.cpp # Application entry point
-│ ├── mainwindow.cpp/.h # Main window and layout
-│ ├── board.cpp/.h # Handles board rendering and logic
-│ ├── game.cpp/.h # Chess rules, player turns, move legality
-│ ├── piece.cpp/.h # Abstract base class for all pieces
-│ └── pieces/
-│ ├── pawn.cpp/.h
-│ ├── rook.cpp/.h
-│ ├── knight.cpp/.h
-│ ├── bishop.cpp/.h
-│ ├── queen.cpp/.h
-│ └── king.cpp/.h
-├── resources/
-│ ├── images/ # PNGs of white and black pieces
-│ └── resources.qrc # Qt Resource Collection file
-├── CMakeLists.txt # Build configuration
-└── README.md # Project documentation
+├── src/                      # Source files
+│   ├── main.cpp              # Application entry point
+│   ├── mainwindow.cpp/.h     # Main GUI window and layout handling
+│   ├── board.cpp/.h          # Renders the board and manages board state
+│   ├── game.cpp/.h           # Chess rules, player turns, move validation
+│   ├── piece.cpp/.h          # Abstract base class for all chess pieces
+│   └── pieces/               # Individual piece logic
+│       ├── pawn.cpp/.h
+│       ├── rook.cpp/.h
+│       ├── knight.cpp/.h
+│       ├── bishop.cpp/.h
+│       ├── queen.cpp/.h
+│       └── king.cpp/.h
+├── resources/                # UI resources
+│   ├── images/               # PNGs for white and black pieces
+│   └── resources.qrc         # Qt Resource Collection file
+├── CMakeLists.txt            # Build system configuration (CMake)
+└── README.md                 # Project documentation
 
-yaml
-Copy
-Edit
 
 ---
 
@@ -71,7 +68,6 @@ Edit
 
 ### 🧪 Build Steps
 
-```bash
 # Clone the repository
 git clone https://github.com/your-username/qt-chess-game.git
 cd qt-chess-game
