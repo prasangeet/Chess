@@ -34,7 +34,7 @@ A fully-featured chess game built using **C++** and the **Qt Framework**. This g
 ---
 
 ## 📁 Project Structure
-
+```
 chess/
 ├── src/ # Source files
 │ ├── main.cpp # Application entry point
@@ -55,9 +55,7 @@ chess/
 ├── CMakeLists.txt # Build system configuration (CMake)
 └── README.md # Project documentation
 
-yaml
-Copy
-Edit
+```
 
 ---
 
@@ -75,7 +73,7 @@ Edit
 
 #### 📥 Clone the repository
 
-```bash
+```
 git clone https://github.com/your-username/qt-chess-game.git
 cd qt-chess-game
 🗂️ Create a build directory
@@ -100,27 +98,9 @@ Edit
 ./ChessGame
 🪟 On Windows, run ChessGame.exe instead of ./ChessGame
 
-yaml
-Copy
-Edit
+```
 
 ---
-
-✅ Just paste it as-is into your `README.md`. Let me know if you'd like to add screenshots, GIFs, or badges too!
-
-
-
-
-
-
-
-
-
-
-Tools
-
-
-
 🧠 Gameplay Rules
 Players alternate turns between White and Black
 
@@ -154,12 +134,7 @@ Upon reaching the final rank, a pawn is promoted to a chosen piece
 
 ⏱️ Timer per player and move logs
 
-📜 License
-This project is released under the MIT License — feel free to use, modify, and distribute it.
 
 🙌 Acknowledgements
 Qt Community for GUI resources
-
-Open-source chess engines for logic inspiration
-
 Icons sourced from [chess.com-like pieces with transparent background]
