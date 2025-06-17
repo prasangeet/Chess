@@ -70,70 +70,49 @@ chess/
 ---
 
 ### 🧪 Build Steps
-
-#### 📥 Clone the repository
-
 ```
+ 📥 Clone the repository
 git clone https://github.com/your-username/qt-chess-game.git
 cd qt-chess-game
 🗂️ Create a build directory
-bash
-Copy
-Edit
 mkdir build && cd build
 ⚙️ Generate build files with CMake
-bash
-Copy
-Edit
 cmake ..
 🛠️ Build the project
-bash
-Copy
-Edit
 cmake --build .
 ▶️ Run the application
-bash
-Copy
-Edit
 ./ChessGame
 🪟 On Windows, run ChessGame.exe instead of ./ChessGame
 
 ```
 
 ---
-🧠 Gameplay Rules
-Players alternate turns between White and Black
+### 🧠 Gameplay Rules
+1.Players alternate turns between White and Black
+2.Legal moves are highlighted upon selecting a piece
+3.Special rules like en passant and castling are validated before execution
+4.Game ends when a checkmate or stalemate is detected
+5.Upon reaching the final rank, a pawn is promoted to a chosen piece
 
-Legal moves are highlighted upon selecting a piece
-
-Special rules like en passant and castling are validated before execution
-
-Game ends when a checkmate or stalemate is detected
-
-Upon reaching the final rank, a pawn is promoted to a chosen piece
-
-📸 Screenshots
+---
+### 📸 Screenshots
 (Insert your screenshots or gameplay GIFs here)
 
 🧩 Initial Board Setup
-
 ✅ Valid move highlighting
-
 🔁 En Passant and Castling examples
-
 🏁 Checkmate and Winner screen
-
 🎭 Pawn Promotion dialog
 
-📦 Future Improvements
+---
+
+### 📦 Future Improvements
 🤖 AI Player using Minimax Algorithm
-
 🌐 Multiplayer over LAN/Internet
-
 📜 PGN or move history viewer
-
 ⏱️ Timer per player and move logs
 
+---
 
 🙌 Acknowledgements
 Qt Community for GUI resources
