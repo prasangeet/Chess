@@ -36,25 +36,28 @@ A fully-featured chess game built using **C++** and the **Qt Framework**. This g
 ## 📁 Project Structure
 
 chess/
-├── src/                      # Source files
-│   ├── main.cpp              # Application entry point
-│   ├── mainwindow.cpp/.h     # Main GUI window and layout handling
-│   ├── board.cpp/.h          # Renders the board and manages board state
-│   ├── game.cpp/.h           # Chess rules, player turns, move validation
-│   ├── piece.cpp/.h          # Abstract base class for all chess pieces
-│   └── pieces/               # Individual piece logic
-│       ├── pawn.cpp/.h
-│       ├── rook.cpp/.h
-│       ├── knight.cpp/.h
-│       ├── bishop.cpp/.h
-│       ├── queen.cpp/.h
-│       └── king.cpp/.h
-├── resources/                # UI resources
-│   ├── images/               # PNGs for white and black pieces
-│   └── resources.qrc         # Qt Resource Collection file
-├── CMakeLists.txt            # Build system configuration (CMake)
-└── README.md                 # Project documentation
+├── src/ # Source files
+│ ├── main.cpp # Application entry point
+│ ├── mainwindow.cpp/.h # Main GUI window and layout handling
+│ ├── board.cpp/.h # Renders the board and manages board state
+│ ├── game.cpp/.h # Chess rules, player turns, move validation
+│ ├── piece.cpp/.h # Abstract base class for all chess pieces
+│ └── pieces/ # Individual piece logic
+│ ├── pawn.cpp/.h
+│ ├── rook.cpp/.h
+│ ├── knight.cpp/.h
+│ ├── bishop.cpp/.h
+│ ├── queen.cpp/.h
+│ └── king.cpp/.h
+├── resources/ # UI resources
+│ ├── images/ # PNGs for white and black pieces
+│ └── resources.qrc # Qt Resource Collection file
+├── CMakeLists.txt # Build system configuration (CMake)
+└── README.md # Project documentation
 
+yaml
+Copy
+Edit
 
 ---
 
@@ -62,28 +65,61 @@ chess/
 
 ### 📋 Requirements
 
-- Qt 6.x (or 5.x) installed
-- CMake ≥ 3.15
+- Qt 6.x (or 5.x) installed  
+- CMake ≥ 3.15  
 - C++17-compatible compiler (GCC, Clang, MSVC)
+
+---
 
 ### 🧪 Build Steps
 
-# Clone the repository
+#### 📥 Clone the repository
+
+```bash
 git clone https://github.com/your-username/qt-chess-game.git
 cd qt-chess-game
-
-# Create a build directory
+🗂️ Create a build directory
+bash
+Copy
+Edit
 mkdir build && cd build
-
-# Generate build files with CMake
+⚙️ Generate build files with CMake
+bash
+Copy
+Edit
 cmake ..
-
-# Build the project
+🛠️ Build the project
+bash
+Copy
+Edit
 cmake --build .
-
-# Run the application
+▶️ Run the application
+bash
+Copy
+Edit
 ./ChessGame
-On Windows: use ChessGame.exe instead of ./ChessGame
+🪟 On Windows, run ChessGame.exe instead of ./ChessGame
+
+yaml
+Copy
+Edit
+
+---
+
+✅ Just paste it as-is into your `README.md`. Let me know if you'd like to add screenshots, GIFs, or badges too!
+
+
+
+
+
+
+
+
+
+
+Tools
+
+
 
 🧠 Gameplay Rules
 Players alternate turns between White and Black
